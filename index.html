@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Löyly Calculator: sauna humidity, dew point and water on the stones</title>
+<meta name="description" content="Free sauna humidity calculator. Temperature and humidity in; dew point, absolute humidity and the water needed to raise the humidity out. Steam-table math.">
+<link rel="canonical" href="https://divelux.github.io/sauna-humidity-calculator/">
+<meta name="theme-color" content="#f6f3ee">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DIVELUX">
+<meta property="og:title" content="Löyly Calculator">
+<meta property="og:description" content="Sauna temperature and humidity in. Dew point, grams of water in the air, and how much water it takes to raise the humidity out. Free, with the formulas and sources written out.">
+<meta property="og:url" content="https://divelux.github.io/sauna-humidity-calculator/">
+<meta property="og:image" content="https://divelux.github.io/sauna-humidity-calculator/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Optional web fonts. Offline or blocked, the page falls back to system fonts. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Löyly Calculator",
+  "alternateName": "Sauna Humidity Calculator",
+  "url": "https://divelux.github.io/sauna-humidity-calculator/",
+  "description": "Works out the dew point and absolute humidity of sauna air from its temperature and relative humidity, and the amount of water that has to evaporate to raise the humidity of a room of a given volume.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true,
+  "inLanguage": "en-US",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Organization", "name": "DIVELUX", "url": "https://diveluxsaunahat.com" },
+  "publisher": { "@type": "Organization", "name": "DIVELUX", "url": "https://diveluxsaunahat.com" }
+}
+</script>
+</head>
+<body class="dvx">
+<a class="dvx-skip" href="#calculator">Skip to the calculator</a>
+
+<header class="dvx-wrap dvx-bar">
+  <a href="https://diveluxsaunahat.com" aria-label="DIVELUX home"><img src="assets/logo-dark.png" width="901" height="127" alt="DIVELUX"></a>
+  <a href="https://diveluxsaunahat.com/pages/sauna-tools">More free sauna tools</a>
+</header>
+
+<main>
+  <div class="dvx-wrap dvx-hero">
+    <h1>Löyly Calculator</h1>
+    <p class="dvx-lead">Löyly is the Finnish word for the steam that rises when water hits the stones. Enter the temperature and humidity of your sauna and see how much water is in the air, and how much more it takes to raise the humidity.</p>
+  </div>
+
+  <div class="dvx-wrap dvx-top" id="calculator">
+    <form class="dvx-form" id="shu-form" aria-label="Sauna air and room" novalidate>
+      <fieldset class="dvx-field">
+        <legend class="dvx-label">Units</legend>
+        <div class="dvx-segs">
+          <label class="dvx-seg"><input type="radio" name="unit" value="us" checked><span>°F, cu ft, fl oz</span></label>
+          <label class="dvx-seg"><input type="radio" name="unit" value="si"><span>°C, m³, ml</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="dvx-field">
+        <legend class="dvx-label">The air now</legend>
+        <div class="dvx-nums">
+          <label class="dvx-num"><span>Temperature</span><span class="dvx-inp dvx-inp--u"><input type="number" inputmode="decimal" step="any" data-i="temp" aria-describedby="shu-e-temp shu-air-hint"><i data-o="tunit">°F</i></span></label>
+          <label class="dvx-num"><span>Relative humidity</span><span class="dvx-inp dvx-inp--u"><input type="number" inputmode="decimal" min="1" max="100" step="any" data-i="rh" aria-describedby="shu-e-rh shu-air-hint"><i>%</i></span></label>
+        </div>
+        <div class="shu-errs">
+          <p class="dvx-err" id="shu-e-temp" hidden></p>
+          <p class="dvx-err" id="shu-e-rh" hidden></p>
+        </div>
+        <p class="dvx-hint" id="shu-air-hint">Read both in the same spot, such as head height on the bench where you sit. Humidity only means something together with the temperature it was read at.</p>
+      </fieldset>
+
+      <fieldset class="dvx-field">
+        <legend class="dvx-label">The room</legend>
+        <div class="dvx-nums">
+          <label class="dvx-num"><span>Volume of the hot room</span><span class="dvx-inp dvx-inp--u"><input type="number" inputmode="decimal" min="0" step="any" data-i="volume" aria-describedby="shu-e-volume shu-vol-hint"><i data-o="vunit">cu ft</i></span></label>
+        </div>
+        <div class="shu-errs"><p class="dvx-err" id="shu-e-volume" hidden></p></div>
+        <p class="dvx-hint" id="shu-vol-hint" data-o="volhint">Length times width times ceiling height. A room 6 ft by 5 ft with a 7 ft ceiling is 210 cu ft.</p>
+      </fieldset>
+
+      <fieldset class="dvx-field">
+        <legend class="dvx-label">More humidity</legend>
+        <div class="dvx-nums">
+          <label class="dvx-num"><span>Raise the humidity by</span><span class="dvx-inp dvx-inp--u"><input type="number" inputmode="decimal" min="0" max="99" step="any" data-i="raise" aria-describedby="shu-e-raise shu-up-hint"><i>points</i></span></label>
+        </div>
+        <div class="shu-errs"><p class="dvx-err" id="shu-e-raise" hidden></p></div>
+        <p class="dvx-hint" id="shu-up-hint">Percentage points of relative humidity. 10 takes a room at 15% to 25%. Enter 0 to only look at the air as it is.</p>
+      </fieldset>
+    </form>
+
+    <div class="dvx-out">
+      <section aria-labelledby="shu-res-h">
+        <h2 class="dvx-kicker" id="shu-res-h" data-o="kicker">Water to raise the humidity</h2>
+        <p class="dvx-headline" data-o="headline">Enter the air and the room</p>
+        <p class="dvx-sub" data-o="sub">The calculator needs JavaScript. The formulas it uses are written out below.</p>
+        <p class="dvx-sr" role="status" aria-live="polite" data-o="live"></p>
+        <dl class="dvx-stats" data-o="stats" hidden></dl>
+      </section>
+
+      <p class="dvx-callout dvx-callout--warn" role="note"><strong>This is the least water it could take, not a recipe.</strong> The figure is the water that must become vapor and stay in the air. In a real sauna some steam leaves through the vents and the door, some soaks into the wood, and some water runs through the stones without boiling. Pour a little at a time, stand clear of the stones, and go by how the room feels.</p>
+
+      <section aria-labelledby="shu-ba-h" data-o="babox" hidden>
+        <h2 class="dvx-h dvx-h--s" id="shu-ba-h">The air before and after</h2>
+        <div class="dvx-scroll" tabindex="0" role="region" aria-label="The air before and after the added humidity">
+          <table class="shu-ba">
+            <thead><tr><th scope="col">Measure</th><th scope="col">Now</th><th scope="col">After</th></tr></thead>
+            <tbody data-o="ba"></tbody>
+          </table>
+        </div>
+        <p class="dvx-hint">The temperature is taken to stay the same. In practice a pour cools the stones a little and the air near the ceiling briefly gets hotter and wetter than the rest.</p>
+      </section>
+
+      <section aria-labelledby="shu-pour-h" data-o="pourbox" hidden>
+        <h2 class="dvx-h dvx-h--s" id="shu-pour-h">One pour</h2>
+        <p class="shu-pour" data-o="pour"></p>
+      </section>
+
+      <div class="dvx-actions">
+        <button type="button" class="dvx-btn" data-a="share">Copy link to this result</button>
+        <span class="dvx-status" role="status" data-o="sharestatus"></span>
+      </div>
+    </div>
+  </div>
+
+  <section class="dvx-wrap dvx-method" aria-labelledby="method-h">
+    <h2 class="dvx-h" id="method-h">How the numbers are worked out</h2>
+    <p>This is textbook psychrometry, the physics of air and water vapor. Every formula and constant below is a published standard. None are ours.</p>
+    <ol>
+      <li><strong>Saturation vapor pressure.</strong> The most water vapor air can hold depends only on temperature. The page takes it from the saturation equation of IAPWS-IF97, the international steam-table standard. It is valid from 0 °C (32 °F) up, which covers every sauna.</li>
+      <li><strong>Vapor pressure now.</strong> Relative humidity is the share of that maximum which is in use. Vapor pressure = saturation pressure × relative humidity.</li>
+      <li><strong>Dew point.</strong> The temperature at which that vapor pressure would be saturation. Any surface cooler than the dew point collects condensation. The page gets it from the inverse steam-table equation, so no approximation is added.</li>
+      <li><strong>Absolute humidity.</strong> Grams of water vapor in a cubic meter of air, from the ideal gas law with the gas constant of water vapor, 461.5 J/(kg·K).</li>
+      <li><strong>Water to raise the humidity.</strong> Room volume × the rise in absolute humidity. One gram of water is one milliliter.</li>
+      <li><strong>The ceiling above the boiling point.</strong> Vapor pressure cannot be higher than the pressure in the room, and a sauna is open to the outside air. At standard sea-level pressure, relative humidity can reach 100% only up to 212 °F (100 °C). Above that the most it can be is air pressure divided by saturation pressure: about 71% at 230 °F (110 °C). The page will not accept a reading above that limit.</li>
+    </ol>
+
+    <div class="shu-formula" role="img" aria-label="Formulas: vapor pressure equals saturation pressure times relative humidity divided by 100. Absolute humidity equals vapor pressure divided by the product of 461.5 and the temperature in kelvin. Water equals room volume times the change in absolute humidity.">e   = es(T) × RH / 100            vapor pressure, Pa
+AH  = e / (461.5 × T_kelvin)      absolute humidity, kg/m³
+Td  = Ts(e)                       dew point
+m   = V × (AH_after − AH_now)     water to evaporate, kg</div>
+
+    <div class="dvx-scroll" tabindex="0" role="region" aria-label="Saturation pressure on this page checked against the NIST steam tables">
+      <table class="shu-check">
+        <caption>Saturation vapor pressure: this page against the NIST steam tables.</caption>
+        <thead><tr><th scope="col">Temperature</th><th scope="col">NIST</th><th scope="col">This page</th><th scope="col">Magnus formula</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">20 °C (68 °F)</th><td>2.3393 kPa</td><td>2.3392 kPa</td><td>2.3334 kPa (−0.2%)</td></tr>
+          <tr><th scope="row">50 °C (122 °F)</th><td>12.352 kPa</td><td>12.351 kPa</td><td>12.361 kPa (+0.1%)</td></tr>
+          <tr><th scope="row">80 °C (176 °F)</th><td>47.414 kPa</td><td>47.415 kPa</td><td>48.040 kPa (+1.3%)</td></tr>
+          <tr><th scope="row">100 °C (212 °F)</th><td>101.42 kPa</td><td>101.42 kPa</td><td>104.08 kPa (+2.6%)</td></tr>
+          <tr><th scope="row">110 °C (230 °F)</th><td>143.38 kPa</td><td>143.38 kPa</td><td>148.24 kPa (+3.4%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The Magnus formula is what most weather and dew point calculators use. Its usual coefficients were fitted for −40 to 50 °C, so it reads high in a hot sauna. That is why this page uses the steam-table equation instead.</p>
+    <p>The ideal gas law is also an approximation. Against the same NIST tables it reads about 0.9% low for saturated vapor at 80 °C and 1.6% low at 100 °C, and less than that at ordinary sauna humidity. Either error is small next to what vents and wood do in a real room.</p>
+
+    <h3>Sources</h3>
+    <ul class="dvx-plain">
+      <li>International Association for the Properties of Water and Steam, <a href="https://iapws.org/technical-guidance/release/IF97-Rev">Revised Release on the IAPWS Industrial Formulation 1997</a>, R7-97(2012). Section 8: the saturation-pressure equation (30), the saturation-temperature equation (31) and the coefficients in Table 34. The code is checked against the release's own test values.</li>
+      <li>NIST Chemistry WebBook, <a href="https://webbook.nist.gov/chemistry/fluid/">Thermophysical Properties of Fluid Systems</a>. Saturation properties of water, used for the check table above and for the ideal gas comparison.</li>
+      <li>O. A. Alduchov and R. E. Eskridge, <a href="https://www.osti.gov/biblio/548871">Improved Magnus form approximation of saturation vapor pressure</a> (1996). The Magnus coefficients 6.1094, 17.625 and 243.04, fitted for −40 to 50 °C. Shown here for comparison only.</li>
+      <li>Harvia KG series heater <a href="https://cdn.shopify.com/s/files/1/0561/1221/8302/files/Harvia_Club.pdf">owner's manual</a> (PDF, U.S. models, hosted by a retailer), section "Throwing Water on Heated Stones". "The amount of water thrown on the stones at a time should not exceed 0.2 l", because the rest may splash as boiling water.</li>
+    </ul>
+
+    <p class="dvx-callout"><strong>What this page does not know.</strong> How fast your room changes its air, how dry the wood is, how hot the stones are, where your hygrometer hangs and how accurate it is. Sauna air is not evenly mixed: it is hotter and wetter near the ceiling right after a pour. The page assumes standard sea-level air pressure; at altitude the ceiling on humidity above the boiling point is lower. It does not give a "feels like" temperature. There is no agreed formula for one at sauna conditions, so we do not print one.</p>
+    <p>The code is open source under the MIT license, so you can read every line.</p>
+  </section>
+</main>
+
+<footer class="dvx-foot">
+  <div class="dvx-wrap">
+    <p><strong>Made by DIVELUX</strong>, handmade wool sauna hats.</p>
+    <p><a href="https://diveluxsaunahat.com">diveluxsaunahat.com</a> · <a href="https://diveluxsaunahat.com/pages/sauna-tools">More free sauna tools</a></p>
+    <p>Löyly Calculator is free and open source under the MIT License. © 2026 DIVELUX Inc. A physics estimate for well-mixed air, not a measurement of your sauna.</p>
+  </div>
+</footer>
+
+<script src="humidity.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
